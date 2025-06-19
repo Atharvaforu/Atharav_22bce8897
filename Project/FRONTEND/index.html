@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Patient Management</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav>
+    <h1>Patient Manager</h1>
+    <a href="signin.html">Logout</a>
+  </nav>
+
+  <div class="container">
+    <h2>Add Patient</h2>
+    <form onsubmit="addPatient(event)">
+      <input type="text" id="name" placeholder="Patient Name" required />
+      <input type="number" id="age" placeholder="Age" required />
+      <input type="text" id="problem" placeholder="Medical Problem" required />
+      <input type="date" id="admissionDate" placeholder="Admission Date" required />
+      <button type="submit">Add Patient</button>
+    </form>
+  </div>
+
+  <div class="container" style="margin-top: 1.5rem;">
+    <h2>All Patients</h2>
+    <div id="patientList"></div>
+  </div>
+
+  <script>
+    async function fetchPatients() {
+      const res = await fetch("http://localhost:5000/patients");
+      const data = await res.json();
+      const list = document.getElementById("patientList");
+      list.innerHTML = "";
+      data.forEach(p => {
+        list.innerHTML += `
+          <div style="margin-bottom: 1rem; padding: 1rem; background: #2c3e5d; border-radius: 8px;">
+            <strong>${p.name}</strong><br>
+            Age: ${p.age}<br>
+            Problem: ${p.problem}<br>
+            Admitted: ${p.admissionDate}<br>
+            <button onclick="deletePatient('${p._id}')">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    async function addPatient(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const age = document.getElementById("age").value;
+      const problem = document.getElementById("problem").value;
+      const admissionDate = document.getElementById("admissionDate").value;
+
+      const res = await fetch("http://localhost:5000/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, age, problem, admissionDate })
+      });
+
+      if (res.ok) {
+        alert("Patient added!");
+        e.target.reset();
+        fetchPatients();
+      } else {
+        alert("Failed to add patient.");
+      }
+    }
+
+    async function deletePatient(id) {
+      await fetch(`http://localhost:5000/patients/${id}`, {
+        method: "DELETE"
+      });
+      fetchPatients();
+    }
+
+    fetchPatients();
+  </script>
+
+</body>
+</html>
